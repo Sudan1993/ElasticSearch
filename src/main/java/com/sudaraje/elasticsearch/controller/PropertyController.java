@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,25 +48,18 @@ public class PropertyController{
 	}
 	
 	@PostMapping("/filterByDistance")
-	public Iterable<Property> filterProperties(@RequestBody PropertyQueryParams queryParams ){
-		//get the post params 
-		double lat = queryParams.getLat();
-		double lng = queryParams.getLng();
-		int minBudget = queryParams.getMinBudget();
-		int maxBudget = queryParams.getMaxBudget();
-		int minBedroom = queryParams.getMinBathroom();
-		int maxBedroom = queryParams.getMaxBathroom();
-		int minBathroom = queryParams.getMinBathroom();
-		int maxBathroom = queryParams.getMaxBathroom();
+	public ResponseEntity<Object> filterProperties(@RequestBody PropertyQueryParams queryParams ){		
 		
-		String query_param = "select * from Property p where p.id > 350";
-		//String query_param = "{\"query\": { \"query_string\" : { \"default_field\" : \"content\", \"query\" : \"77.5009\" }}}";
-		//String query_param = "{\"range\" : {\"budget\" : {\"gte\" : \"" + queryParams.getMinBudget() + "\",\"lte\" : \""+ queryParams.getMaxBudget() +"\"}}}";
-		//Iterable<Property> propList = propertyRepository.search(queryStringQuery(query_param));
-		//List<Property> propList = propertyRepository.customQuery(26000, 30000);
-		//return propList;
-		//return propertyRepository.findByBudget(20684);
-		return propertyRepository.findByBudgetBetween(minBudget,maxBudget);
+		if (queryParams.getMinBudget() == 0 && queryParams.getMaxBudget() == 0)
+			return new ResponseEntity<>("Either Min or Max for Budget must be present", HttpStatus.NOT_ACCEPTABLE);
+		else if (queryParams.getMinBedroom() == 0 && queryParams.getMaxBedroom() == 0)
+			return new ResponseEntity<>("Either Min or Max for Bedroom must be present", HttpStatus.NOT_ACCEPTABLE);
+		else if (queryParams.getMinBathroom() == 0 && queryParams.getMaxBathroom() == 0)
+			return new ResponseEntity<>("Either Min or Max for Bathroom must be present", HttpStatus.NOT_ACCEPTABLE);
+		else if (queryParams.getLat() == 0 && queryParams.getLng() == 0)
+			return new ResponseEntity<>("Lat and Long must be present", HttpStatus.NOT_ACCEPTABLE);
+		
+		return new ResponseEntity<>(searchQueryBuilder.customSearch(queryParams),HttpStatus.ACCEPTED);
 		
 	}
 	
@@ -73,4 +68,5 @@ public class PropertyController{
         return searchQueryBuilder.getAll(text);
     }
 		
+	
 }

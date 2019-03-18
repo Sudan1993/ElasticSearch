@@ -6,7 +6,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import lombok.Data;
 
 @Data
-@Document(indexName="propertydata",type="properties",shards=1)
+@Document(indexName="propertydata",type="properties",shards=2)
 public class Property{
 	
 	@Id
